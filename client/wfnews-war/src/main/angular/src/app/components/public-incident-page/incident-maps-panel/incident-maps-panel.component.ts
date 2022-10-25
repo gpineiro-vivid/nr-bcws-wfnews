@@ -20,11 +20,11 @@ export class IncidentMapsPanel implements OnInit {
   downloadableMaps: DownloadableMap[];
 
   constructor(private snackbarService: MatSnackBar,
-              private httpClient: HttpClient) {
-    
+              private httpClient: HttpClient) {    
   }
 
   ngOnInit() {
+
     this.downloadableMaps = [
       {
         name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
@@ -47,7 +47,12 @@ export class IncidentMapsPanel implements OnInit {
   }
 
   loadMaps() {
-   
+    debugger;
+    let url=`https://wfnews-server.dev.bcwildfireservices.com/publicExternalUri?sourceObjectUniqueId=${this.incident.publishedIncidentDetailGuid}&pageNumber=0&pageRowCount=10`;
+
+    this.httpClient.request( new HttpRequest( 'GET', url)).subscribe( (response) => {
+      debugger;  
+    });
   }
 
   downloadMap(mapLink) {
