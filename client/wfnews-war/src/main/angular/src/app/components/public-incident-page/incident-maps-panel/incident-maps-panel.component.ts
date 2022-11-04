@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, Input, OnInit } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpClient, HttpEventType, HttpRequest, HttpResponse } from "@angular/common/http";
+import { PublishedIncidentService } from "../../../services/published-incident-service";
 
 export class DownloadableMap {
   name :string;
@@ -17,37 +18,50 @@ export class DownloadableMap {
 export class IncidentMapsPanel implements OnInit {
   @Input() public incident;
 
-  downloadableMaps: DownloadableMap[];
+  maps: DownloadableMap[];
 
   constructor(private snackbarService: MatSnackBar,
-              private httpClient: HttpClient) {
+              private httpClient: HttpClient,
+              private publishedIncidentService: PublishedIncidentService) {
     
   }
 
   ngOnInit() {
-    this.downloadableMaps = [
-      {
-        name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-      },
-      {
-        name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-      },
-      {
-        name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-      },
-      {
-        name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-      },
-      {
-        name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-      }
-    ];
+    // this.maps = [
+    //   {
+    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
+    //   },
+    //   {
+    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
+    //   },
+    //   {
+    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
+    //   },
+    //   {
+    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
+    //   },
+    //   {
+    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
+    //   }
+    // ];
 
     this.loadMaps();
   }
 
   loadMaps() {
-   
+    this.publishedIncidentService.fetchPublishedIncidentAttachments(this.incident.incidentName, false, "0", "1000").toPromise()
+      .then( ( docs ) => {
+        // remove any non-image types
+        for (const doc of docs.collection) {
+          const idx = docs.collection.indexOf(doc)
+          if (idx && !['image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff'].includes(doc.mimeType.toLowerCase())) {
+            docs.collection.splice(idx, 1)
+          }
+        }
+        this.maps = docs.collection;
+      }).catch(err => {
+        this.snackbarService.open('Failed to load Map Attachments: ' + err, 'OK', { duration: 10000, panelClass: 'snackbar-error' });
+    })
   }
 
   downloadMap(mapLink) {

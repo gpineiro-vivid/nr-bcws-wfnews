@@ -4,7 +4,7 @@
     </div>
     <div class="content-panel">
         <div class="content-panel-stack">
-            <div *ngFor="let map of downloadableMaps">
+            <div *ngFor="let map of maps">
                 <div style="display: flex;">
                     <div class="file-pdf-icon" (click)="downloadMap(map.link)"></div>
                     <div>
@@ -15,4 +15,5 @@
             </div>
         </div>
     </div>
+    <div *ngIf="!maps || maps.length == 0">There are currently no maps available for this wildfire.</div>
 </div>
