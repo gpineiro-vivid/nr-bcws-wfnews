@@ -46,4 +46,9 @@ export class PublishedIncidentService {
       return this.httpClient.post(publishedUrl, publishedIncident, headers)
     }
   }
+
+  public fetchPublishedIncidentAttachments (incidentName, primary, pageNumber, pageRowCount): Observable<any> {
+    let url  = `${this.appConfigService.getConfig().rest['wfnews']}/publicPublishedIncidentAttachment/G90313/attachments`;
+    return this.httpClient.get(url);
+  }
 }

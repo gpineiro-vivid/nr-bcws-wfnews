@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Input, OnInit } from "@angular/core";
+import { Component, ChangeDetectionStrategy, Input, OnInit, ChangeDetectorRef } from "@angular/core";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { HttpClient, HttpEventType, HttpRequest, HttpResponse } from "@angular/common/http";
 import { PublishedIncidentService } from "../../../services/published-incident-service";
@@ -22,34 +22,22 @@ export class IncidentMapsPanel implements OnInit {
 
   constructor(private snackbarService: MatSnackBar,
               private httpClient: HttpClient,
-              private publishedIncidentService: PublishedIncidentService) {
-    
+              private publishedIncidentService: PublishedIncidentService,
+              protected cdr: ChangeDetectorRef) {
   }
 
   ngOnInit() {
-    // this.maps = [
-    //   {
-    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-    //   },
-    //   {
-    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-    //   },
-    //   {
-    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-    //   },
-    //   {
-    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-    //   },
-    //   {
-    //     name: "Akokli Creek Active Evacuation Areas", link: "https://cdn.filestackcontent.com/wcrjf9qPTCKXV3hMXDwK", date: "June 24, 2022"
-    //   }
-    // ];
-
-    this.loadMaps();
+    var self = this;
+    this.loadMaps().then(docs => {
+      self.maps = docs.map(doc => {
+        return { name:doc.attachmentTitle, link:`/publicPublishedIncidentAttachment/${self.incident.incidentNumberSequence}/attachments/${doc.attachmentGuid}/bytes`, date:new Date(doc.createdTimestamp).toDateString()};
+      });
+      this.cdr.detectChanges();
+    });
   }
 
-  loadMaps() {
-    this.publishedIncidentService.fetchPublishedIncidentAttachments(this.incident.incidentName, false, "0", "1000").toPromise()
+  loadMaps(): Promise<any> {
+    return this.publishedIncidentService.fetchPublishedIncidentAttachments(this.incident.incidentName, false, "0", "1000").toPromise()
       .then( ( docs ) => {
         // remove any non-image types
         for (const doc of docs.collection) {
@@ -58,7 +46,7 @@ export class IncidentMapsPanel implements OnInit {
             docs.collection.splice(idx, 1)
           }
         }
-        this.maps = docs.collection;
+        return docs.collection;
       }).catch(err => {
         this.snackbarService.open('Failed to load Map Attachments: ' + err, 'OK', { duration: 10000, panelClass: 'snackbar-error' });
     })
